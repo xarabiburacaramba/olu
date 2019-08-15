@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: olu-flask-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-headers: content-type, Authorization, Tenant
+    nginx.ingress.kubernetes.io/cors-allow-methods: PUT, GET, POST, OPTIONS
+    nginx.ingress.kubernetes.io/cors-allow-origin: '*'
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 300m
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod-cluster-issuer
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec: 
+  rules:
+  - host: olu-api.test.euxdat.eu
+    http:
+      paths:
+      - path: / 
+        backend: 
+          serviceName: olu-flask-service
+          servicePort: 8080
+  tls:
+  - hosts:
+    - olu-api.test.euxdat.eu
+    secretName: olu-api.test.euxdat.eu
+

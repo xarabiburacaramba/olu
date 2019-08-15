@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata: 
+  name: olu-flask-service
+spec:
+  selector:
+    name: olu-flask
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080 
+

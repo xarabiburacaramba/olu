@@ -1,0 +1,6 @@
+flask
+numpy
+gdal 
+pygeoprocessing
+psycopg2
+PIL

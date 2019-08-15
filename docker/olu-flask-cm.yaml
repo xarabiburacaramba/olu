@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: olu-flask-env
+data:
+  server: "euxdat-db-svc" 
+  port: "5432"
+  database: "euxdat"
+  username: "euxdat_admin"
+  password: "Euxdat12345"
+  temporary_folder: "/tmp"
+  dem_raster_file: "/data/eu_dem_wv_3857.tif"
+  table: "areas_master"
+  schema: "european_land_use"
+  FLASK_DEBUG: "True"
+  SERVER_NAME: "olu-flask.test.euxdat.eu" 
+
+

@@ -1,0 +1,20 @@
+version: '1'
+services:
+    web:
+        build: .
+        ports:
+            - "5000:5000"
+        volumes:
+            - .:/app
+        environment:
+            - port=${port}
+            - server=${server}
+            - database=${database}
+            - username=${username}
+            - password=${password}
+            - temporary_folder=${temporary_folder}
+            - dem_raster_file=${dem_raster_file}
+            - table=${table}
+            - schema=${schema}
+            - FLASK_DEBUG=${FLASK_DEBUG}
+            - SERVER_NAME=${SERVER_NAME}

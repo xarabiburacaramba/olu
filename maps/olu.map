@@ -1,0 +1,49 @@
+MAP
+    NAME olu-elevation
+    STATUS ON
+    SIZE 256 256
+    EXTENT -180 -90 180 90
+    IMAGECOLOR 255 255 255
+    CONFIG "MS_ERRORFILE" "/var/www/html/logs/wms_werver_test_error.txt"
+    DEBUG 5
+    WEB
+        IMAGEPATH "/var/www/html/tmp/"
+        IMAGEURL "/tmp/"
+        METADATA
+        "ows_title"                  "Open Land Use (OLU) parametric WMS"
+        "ows_onlineresource"         "https://mapserver.test.euxdat.eu/cgi-bin/mapserv?map=/maps/elevation/olu.map&"
+        "ows_srs"            "EPSG:4326 EPSG:4269 EPSG:3978 EPSG:3857"
+        "wms_feature_info_mime_type" "text/html"
+        "ows_abstract"               "The WMS service allows to farmer querying his fields by various geomorphological parameters "
+        "wms_contactperson"          "Dmitrij Kožuch"
+        "wms_contactorganization"    "Plan4All"
+        "wms_contactposition"        "GIS specialist"
+        "wms_contactelectronicmailaddress" "dmitrii@hsrs.cz"
+        "wms_enable_request"   "*"
+        END
+    END
+
+    PROJECTION
+      "init=epsg:4326"
+    END
+
+    LAYER
+        NAME elevation_raster
+        TYPE raster
+        METADATA
+            "ows_title" "Elevation raster"
+            "ows_srs" "EPSG:3857"
+            "ows_enable_request" "*"
+        END
+        EXTENT 1725452 6148537 1892445 6274862
+        PROJECTION
+            "init=epsg:3857"
+        END
+        STATUS ON
+        DUMP true
+        TEMPLATE dummy
+        DATA "PG:host=euxdat_db_svc port=5432 dbname=euxdat user=euxdat_admin password=Euxdat12345 schema=elu_austria table=at31633123 column=elevation where='st_srid(elevation)=3857' mode=1"
+        PROCESSING "NODATA=-32767"
+        PROCESSING "SCALE=AUTO"
+    END
+END

@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: olu-flask-rc
+  labels:
+    name: olu-flask-rc
+spec:
+  replicas: 1
+  selector:
+    name: olu-flask
+  template:
+    metadata:
+      labels:
+        name: olu-flask
+        component: processingpipeline
+    spec:
+      containers:
+      - name: olu-flask
+        image: registry.test.euxdat.eu/euxdat/open-land-use:latest
+        imagePullPolicy: Always 
+        envFrom:
+          - configMapRef:
+              name: olu-flask-env 
+        volumeMounts:
+        - mountPath: "/data"
+          name: dem-data
+        securityContext:
+          privileged: true
+      imagePullSecrets:
+      - name: euxdatregistrykey
+      volumes:
+      - hostPath:
+          path: "/data/euxdat-olu/data/"
+          type: DirectoryOrCreate
+        name: dem-data
+

@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: frontend-olu-ingress
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod-cluster-issuer
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/upstream-vhost: "*"  
+spec:
+  rules:
+  - host: olu.test.euxdat.eu
+  - http:
+      paths:
+      - path: / 
+        backend:
+          serviceName: frontend-olu-service
+          servicePort: 8080
+  tls:
+  - hosts:
+    - olu.test.euxdat.eu
+    secretName: olu.test.euxdat.eu

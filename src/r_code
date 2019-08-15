@@ -1,0 +1,138 @@
+library(caret)        # machine laerning
+library(randomForest) # Random Forest
+library(rgdal)        # spatial data processing
+library(raster)       # raster processing
+library(plyr)         # data manipulation 
+library(dplyr)        # data manipulation 
+library(RStoolbox)    # ploting spatial data 
+library(RColorBrewer) # color
+library(ggplot2)      # ploting
+library(sp)           # spatial data
+library(doParallel)   # Parallel processing
+
+dataFolder<-"/home/dima/Documents/data/R_randomForest/S2B_MSIL1C_20180819T100019_N0206_R122_T33UXP_20180819T141300.SAFE/GRANULE/L1C_T33UXP_A007584_20180819T100323/IMG_DATA/"
+
+train.df<-read.csv(paste0(dataFolder,"train_labels.csv"), header = T)
+test.df<-read.csv(paste0(dataFolder,"test_labels.csv"), header = T)
+
+
+mc <- makeCluster(detectCores())
+registerDoParallel(mc)
+
+
+myControl <- trainControl(method="repeatedcv", 
+                          number=3, 
+                          repeats=2,
+                          returnResamp='all', 
+                          allowParallel=TRUE)
+
+
+set.seed(849)
+fit.rf <- train(as.factor(Class)~B2+B3+B4+B8, 
+                data=train.df,
+                method = "rf",
+                metric= "Accuracy",
+                preProc = c("center", "scale"), 
+                trControl = myControl
+                )
+                
+stopCluster(mc)
+
+
+p2<-predict(fit.rf, test.df, type = "raw")
+grid.df<-read.csv(paste0(dataFolder,"prediction_grid.csv"), header = T)
+
+p3<-as.data.frame(predict(fit.rf, grid.df, type = "raw"))
+grid.df$Class<-p3$predict
+
+write.csv(grid.df,paste0(dataFolder,"predicted_labels.csv"), row.names = T)
+
+
+
+
+
+library(rgdal)
+library(raster)
+library(dplyr)
+library(plyr)
+library(keras)         # karas api in R
+library(tfruns)        # Create and manage unique directories for each 'TensorFlow' training run. 
+library(tfestimators) # Interface to 'TensorFlow' Estimators 
+
+dataFolder<-"/home/dima/Documents/data/R_randomForest/S2B_MSIL1C_20180819T100019_N0206_R122_T33UXP_20180819T141300.SAFE/GRANULE/L1C_T33UXP_A007584_20180819T100323/IMG_DATA/"
+
+point<-read.csv(paste0(dataFolder,"point_data.csv"), header = T)
+grid<-read.csv(paste0(dataFolder,"prediction_grid.csv"), header = T)
+point.df<-cbind(point[c(3:7)])
+grid.df<-grid[c(4:7)]
+
+grid.xy<-grid[c(3,1:2)]
+
+point.df[,5] <- as.numeric(point.df[,5])-1
+
+
+point.df<- as.matrix(point.df)
+grid.df <- as.matrix(grid.df)
+
+dimnames(point.df) <- NULL
+dimnames(grid.df) <- NULL
+
+point.df[, 1:4] = scale(point.df[, 1:4])
+grid.df[, 1:4] = scale(grid.df[, 1:4])
+
+ind <- sample(2, nrow(point.df), replace=TRUE, prob=c(0.80, 0.20))
+
+training <- point.df[ind==1, 1:4]
+test <- point.df[ind==2, 1:4]
+
+trainingtarget <- point.df[ind==1, 5]
+testtarget <- point.df[ind==2, 5]
+
+FLAGS <- flags(
+flag_numeric('dropout_1', 0.2, 'First dropout'),
+flag_numeric('dropout_2', 0.2, 'Second dropout'),
+flag_numeric('dropout_3', 0.1, 'Third dropout'),
+flag_numeric('dropout_4', 0.1, 'Forth dropout')
+)
+
+model <- keras_model_sequential()
+model %>% 
+  # Imput layer
+  layer_dense(units = 500, activation = 'relu', 
+              kernel_regularizer =regularizer_l1_l2(l1 = 0.00001, l2 = 0.00001),input_shape = c(4)) %>% 
+  layer_dropout(rate = FLAGS$dropout_1,seed = 1) %>% 
+  # Hidden layers
+  layer_dense(units = 500, activation = 'relu',
+              kernel_regularizer = regularizer_l1_l2(l1 = 0.00001, l2 = 0.00001)) %>%
+  layer_dropout(rate = FLAGS$dropout_2,seed = 1) %>%
+  layer_dense(units = 500, activation = 'relu',
+              kernel_regularizer = regularizer_l1_l2(l1 = 0.00001, l2 = 0.00001)) %>%
+  layer_dropout(rate = FLAGS$dropout_3,seed = 1) %>%
+  layer_dense(units = 500, activation = 'relu',
+              kernel_regularizer = regularizer_l1_l2(l1 = 0.0001, l2 = 0.00001)) %>%
+  layer_dropout(rate = FLAGS$dropout_4) %>%
+  # Output layer
+  layer_dense(units = 5, activation = 'softmax')
+summary(model)
+
+optimizer <- optimizer_sgd(lr=0.01)
+
+model %>% compile(
+  loss = 'sparse_categorical_crossentropy',
+  optimizer = optimizer,
+  metrics = 'accuracy'
+)
+
+history<-model %>% fit(
+  training, trainingtarget, 
+  epochs = 100, 
+  batch_size = 100, 
+  shuffle = TRUE,
+  validation_split = 0.2
+  )
+  
+score <- model %>% evaluate(test, testtarget, batch_size = 100)
+  
+
+  
+  

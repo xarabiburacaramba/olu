@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: frontend-olu-rc
+spec:
+  replicas: 1
+  selector:
+    name: frontend-olu
+  template:
+    metadata:
+      name: frontend-olu
+      labels:
+        name: frontend-olu
+    spec:
+      containers:
+
+      - name: frontend-olu
+        image: registry.test.euxdat.eu/euxdat/euxdat-olu-frontend
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080 
+        env:
+        - name: container
+          value: "docker"
+        securityContext:
+          privileged: true
+
+      imagePullSecrets:
+      - name: euxdatregistrykey
